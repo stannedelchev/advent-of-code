@@ -34,14 +34,18 @@ namespace AdventOfCode2018.Day1
 
     Starting with a frequency of zero, what is the resulting frequency after all of the changes in frequency have been applied?
     */
-    internal class Problem
+    internal class Problem : IProblem
     {
-        public int Part1(string[] input)
+        public string Part1(string[] input) => $"{this.Part1Core(input)}";
+
+        public string Part2(string[] input) => $"{this.Part2Core(input)}";
+
+        private int Part1Core(string[] input)
         {
             return input.Select(int.Parse).Sum();
         }
 
-        public int Part2(string[] input)
+        private int Part2Core(string[] input)
         {
             var frequencies = new HashSet<int>();
             var currentFrequency = 0;
