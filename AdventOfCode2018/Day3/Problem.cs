@@ -11,33 +11,27 @@ namespace AdventOfCode2018.Day3
         public string Part1(string[] input)
         {
             var rects = this.ParseInputAsRectangles(input);
+            var matrix = new int[1000, 1000];
 
-            // TODO: Replace with sweeper from https://stackoverflow.com/questions/244452/what-is-an-efficient-algorithm-to-find-area-of-overlapping-rectangles
-
-            var maxWidth = 0;
-            var maxHeight = 0;
             foreach (var rect in rects)
             {
-                maxWidth = Math.Max(maxWidth, rect.X + rect.Width);
-                maxHeight = Math.Max(maxHeight, rect.Y + rect.Height);
+                for (int xs = rect.X; xs < rect.X + rect.Width; xs++)
+                {
+                    for(int ys = rect.Y; ys < rect.Y + rect.Height; ys++)
+                    {
+                        matrix[xs, ys]++;
+                    }
+                }
             }
 
             var result = 0;
-            var rectsLength = rects.Length;
-
-            for (var x = 0; x < maxWidth; x++)
+            for (int i = 0; i < 1000; i++)
             {
-                for (var y = 0; y < maxHeight; y++)
+                for (int j = 0; j < 1000; j++)
                 {
-                    int rectanglesPointBelongsTo = 0;
-                    for(int i = 0; i < rectsLength; i++)
+                    if(matrix[i,j] > 1)
                     {
-                        rectanglesPointBelongsTo += rects[i].Contains(x, y) ? 1 : 0;
-                        if (rectanglesPointBelongsTo >= 2)
-                        {
-                            result++;
-                            break;
-                        }
+                        result++;
                     }
                 }
             }
