@@ -9,7 +9,7 @@ namespace AdventOfCode2018
     {
         private static void Main(string[] args)
         {
-            var problems = new IProblem[] { new Day1.Problem(), new Day2.Problem(),  new Day3.Problem(), new Day4.Problem() };
+            var problems = new IProblem[] { new Day1.Problem(), new Day2.Problem(), new Day3.Problem(), new Day4.Problem(), new Day5.Problem() };
 
             foreach (var problem in problems)
             {
