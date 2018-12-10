@@ -15,7 +15,8 @@ namespace AdventOfCode2018
                 new Day3.Problem(),
                 new Day4.Problem(),
                 new Day5.Problem(),
-                new Day6.Problem()
+                new Day6.Problem(),
+                new Day7.Problem()
             };
 
             var totalTime = Stopwatch.StartNew();
