@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AdventOfCode2018.Common;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -49,17 +50,6 @@ namespace AdventOfCode2018.Day8
             return node;
         }
     }
-
-    internal static class IEnumeratorExtensions
-    {
-        public static T ProcessAndMove<T>(this IEnumerator<T> enumerator)
-        {
-            var result = enumerator.Current;
-            enumerator.MoveNext();
-            return result;
-        }
-    }
-
 
     internal class TreeNode
     {

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AdventOfCode2018.Common;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -50,7 +51,7 @@ namespace AdventOfCode2018.Day1
         {
             var frequencies = new HashSet<int>();
             var currentFrequency = 0;
-            foreach (var shift in this.RepeatCollectionForever(input.Select(int.Parse)))
+            foreach (var shift in input.Select(int.Parse).RepeatForever())
             {
                 currentFrequency += shift;
                 if (frequencies.Contains(currentFrequency))
@@ -88,15 +89,5 @@ Here are other examples:
 
 What is the first frequency your device reaches twice?
 */
-        private IEnumerable<T> RepeatCollectionForever<T>(IEnumerable<T> source)
-        {
-            while (true)
-            {
-                foreach (var item in source)
-                {
-                    yield return item;
-                }
-            }
-        }
     }
 }
