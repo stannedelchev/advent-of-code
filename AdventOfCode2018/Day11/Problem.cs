@@ -1,103 +1,87 @@
-﻿using System.Collections.Concurrent;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 namespace AdventOfCode2018.Day11
 {
     internal class Problem : IProblem
     {
+        private const int ProblemGridSize = 300;
+
         public string Part1(string[] input)
         {
             var gridSerialNumber = int.Parse(input[0]);
-            const int GridSize = 300;
-            var grid = new int[GridSize, GridSize];
-            for (var y = 1; y <= GridSize; y++)
-            {
-                for (var x = 1; x <= GridSize; x++)
-                {
-                    var powerLevel = this.CalculatePowerLevel(x, y, gridSerialNumber);
-                    grid[x - 1, y - 1] = powerLevel;
-                }
-            }
 
-            (long sum, int x, int y) largestTotalPower = (0, 0, 0);
+            var grid = this.CreateSummedAreaTable(ProblemGridSize, gridSerialNumber);
 
-            const int SquareSize = 3;
-            for (var y = 0; y < GridSize - SquareSize; y++)
-            {
-                for (var x = 0; x < GridSize - SquareSize; x++)
-                {
-                    var sum = 0L;
-                    for (var dy = 0; dy < SquareSize; dy++)
-                    {
-                        for (var dx = 0; dx < SquareSize; dx++)
-                        {
-                            sum += grid[x + dx, y + dy];
-                        }
-                    }
+            var largestTotalPower = this.CalculateTotalPower(grid, ProblemGridSize, 3);
 
-                    if (sum > largestTotalPower.sum)
-                    {
-                        largestTotalPower = (sum, x, y);
-                    }
-                }
-            }
-
-            var result = $"{largestTotalPower.x + 1},{largestTotalPower.y + 1}";
-            return result;
+            return $"{largestTotalPower.X + 1},{largestTotalPower.Y + 1}";
         }
 
         public string Part2(string[] input)
         {
             var gridSerialNumber = int.Parse(input[0]);
-            const int GridSize = 300;
-            var grid = new int[GridSize, GridSize];
-            for (var y = 1; y <= GridSize; y++)
+            var grid = this.CreateSummedAreaTable(ProblemGridSize, gridSerialNumber);
+
+            var largestSquarePower = new TotalSquarePower();
+            var lockObj = new object();
+
+            Parallel.For(1, ProblemGridSize + 1, squareSize =>
             {
-                for (var x = 1; x <= GridSize; x++)
+                var squarePower = this.CalculateTotalPower(grid, ProblemGridSize, squareSize);
+                lock (lockObj)
                 {
-                    var powerLevel = this.CalculatePowerLevel(x, y, gridSerialNumber);
-                    grid[x - 1, y - 1] = powerLevel;
+                    if (squarePower.Sum > largestSquarePower.Sum)
+                    {
+                        largestSquarePower = squarePower;
+                    }
+                }
+            });
+
+            var result = $"{largestSquarePower.X + 1},{largestSquarePower.Y + 1},{largestSquarePower.SquareSize}";
+            return result;
+        }
+
+        private int[,] CreateSummedAreaTable(int gridSize, int gridSerialNumber)
+        {
+            // Include always-zero top and left edges.
+            var extendedGrid = new int[gridSize + 1, gridSize + 1];
+            for (var y = 1; y <= gridSize; y++)
+            {
+                for (var x = 1; x <= gridSize; x++)
+                {
+                    var power = this.CalculatePowerLevel(x, y, gridSerialNumber);
+                    extendedGrid[y, x] = power + extendedGrid[y, x - 1] + extendedGrid[y - 1, x] - extendedGrid[y - 1, x - 1];
                 }
             }
 
-            var allTotalPowers = new ConcurrentQueue<TotalPower>();
+            return extendedGrid;
+        }
 
-            Parallel.For(1, GridSize + 1, (squareSize) =>
+        private TotalSquarePower CalculateTotalPower(int[,] extendedGrid, int gridSize, int squareSize)
+        {
+            var largestSum = 0;
+            var largestX = 0;
+            var largestY = 0;
+            for (var y = 1; y <= gridSize - squareSize; y++)
             {
-                var largestPowerForSquare = new TotalPower()
+                for (var x = 1; x <= gridSize - squareSize; x++)
                 {
-                    SquareSize = squareSize
-                };
+                    var d = extendedGrid[y + squareSize, x + squareSize];
+                    var a = extendedGrid[y, x];
+                    var b = extendedGrid[y, x + squareSize];
+                    var c = extendedGrid[y + squareSize, x];
+                    var squarePower = d + a - b - c;
 
-                for (var y = 0; y <= GridSize - squareSize; y++)
-                {
-                    for (var x = 0; x <= GridSize - squareSize; x++)
+                    if (squarePower > largestSum)
                     {
-                        var sum = 0L;
-                        for (var dy = 0; dy < squareSize; dy++)
-                        {
-                            for (var dx = 0; dx < squareSize; dx++)
-                            {
-                                sum += grid[x + dx, y + dy];
-                            }
-                        }
-
-                        if (sum > largestPowerForSquare.Sum)
-                        {
-                            largestPowerForSquare.X = x;
-                            largestPowerForSquare.Y = y;
-                            largestPowerForSquare.Sum = sum;
-                        }
+                        largestSum = squarePower;
+                        largestX = x;
+                        largestY = y;
                     }
                 }
+            }
 
-                allTotalPowers.Enqueue(largestPowerForSquare);
-            });
-
-            var maxTotalPower = allTotalPowers.OrderByDescending(p => p.Sum).First();
-            var result = $"{maxTotalPower.X + 1},{maxTotalPower.Y + 1},{maxTotalPower.SquareSize}";
-            return result;
+            return new TotalSquarePower() { X = largestX, Y = largestY, Sum = largestSum, SquareSize = squareSize };
         }
 
         private int CalculatePowerLevel(int x, int y, int gridSerialNumber)
@@ -110,13 +94,5 @@ namespace AdventOfCode2018.Day11
             powerLevel -= 5;
             return powerLevel;
         }
-    }
-
-    public struct TotalPower
-    {
-        public long Sum { get; set; }
-        public int X { get; set; }
-        public int Y { get; set; }
-        public int SquareSize { get; set; }
     }
 }
