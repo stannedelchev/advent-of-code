@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using AdventOfCode.Shared;
 
 namespace AdventOfCode2018.Day10
 {

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using AdventOfCode.Shared;
 
 namespace AdventOfCode2018.Day13
 {

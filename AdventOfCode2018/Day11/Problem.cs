@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+using AdventOfCode.Shared;
 
 namespace AdventOfCode2018.Day11
 {

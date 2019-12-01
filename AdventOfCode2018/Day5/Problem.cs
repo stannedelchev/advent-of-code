@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using AdventOfCode.Shared;
 
 namespace AdventOfCode2018.Day5
 {
