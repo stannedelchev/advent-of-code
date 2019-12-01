@@ -1,4 +1,5 @@
 ﻿using System;
+using AdventOfCode.Shared;
 
 namespace AdventOfCode2019
 {
@@ -6,7 +7,12 @@ namespace AdventOfCode2019
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
+            var problems = new IProblem[] {
+                new Day01.Problem(),
+            };
+
+            var runner = new ProblemRunner(problems);
+            runner.Run();
         }
     }
 }

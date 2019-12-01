@@ -7,4 +7,14 @@
     <RootNamespace>AdventOfCode2019</RootNamespace>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\AdventOfCode.Shared\AdventOfCode.Shared.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Day01\input.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
