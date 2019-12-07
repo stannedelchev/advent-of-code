@@ -13,6 +13,7 @@ namespace AdventOfCode2019
                 new Day04.Problem(),
                 new Day05.Problem(),
                 new Day06.Problem(),
+                new Day07.Problem(),
             };
 
             var runner = new ProblemRunner(problems);

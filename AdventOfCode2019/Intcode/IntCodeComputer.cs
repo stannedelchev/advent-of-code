@@ -5,23 +5,6 @@ using System.Runtime.CompilerServices;
 
 namespace AdventOfCode2019.Intcode
 {
-    internal readonly ref struct InstructionResult
-    {
-        public readonly long InstructionPointer;
-        public readonly long ArithmeticResult;
-        public readonly long OutputIndex;
-        public readonly bool ShouldHalt;
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
-        public InstructionResult(long instructionPointer, long arithmeticResult, long outputIndex = -1, bool shouldHalt = false)
-        {
-            InstructionPointer = instructionPointer;
-            ArithmeticResult = arithmeticResult;
-            OutputIndex = outputIndex;
-            ShouldHalt = shouldHalt;
-        }
-    }
-
     internal class IntCodeComputer
     {
         private readonly long[] memory;
@@ -47,10 +30,14 @@ namespace AdventOfCode2019.Intcode
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
-        public void Initialize(long[] program, long initialInput = 1)
+        public void Initialize(long[] program)
         {
             Array.Copy(program, this.memory, program.Length);
-            this.input.Enqueue(initialInput);
+        }
+
+        public void QueueInput(long input)
+        {
+            this.input.Enqueue(input);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]

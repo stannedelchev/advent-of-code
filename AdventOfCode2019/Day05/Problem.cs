@@ -10,7 +10,8 @@ namespace AdventOfCode2019.Day05
         {
             var computer = new IntCodeComputer(input[0].Length);
             var program = computer.CreateProgram(input[0]);
-            computer.Initialize(program, 1);
+            computer.Initialize(program);
+            computer.QueueInput(1);
             computer.ExecuteProgram();
 
             return computer.Output.Last().ToString();
@@ -20,7 +21,8 @@ namespace AdventOfCode2019.Day05
         {
             var computer = new IntCodeComputer(input[0].Length);
             var program = computer.CreateProgram(input[0]);
-            computer.Initialize(program, 5);
+            computer.Initialize(program);
+            computer.QueueInput(5);
             computer.ExecuteProgram();
 
             return computer.Output.Last().ToString();
