@@ -1,9 +1,8 @@
-﻿using System;
-using AdventOfCode.Shared;
+﻿using AdventOfCode.Shared;
 
 namespace AdventOfCode2019
 {
-    class Program
+    internal class Program
     {
         static void Main(string[] args)
         {
@@ -12,6 +11,8 @@ namespace AdventOfCode2019
                 new Day02.Problem(),
                 new Day03.Problem(),
                 new Day04.Problem(),
+                new Day05.Problem(),
+                new Day06.Problem(),
             };
 
             var runner = new ProblemRunner(problems);

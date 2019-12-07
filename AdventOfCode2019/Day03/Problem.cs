@@ -71,8 +71,8 @@ namespace AdventOfCode2019.Day03
         public string Part2(string[] input)
         {
             var wire1 = input[0].Split(',', StringSplitOptions.RemoveEmptyEntries)
-                .Aggregate(new List<GridPoint>(250000), this.GetPoints)
-                .ToHashSet(GridPoint.XYComparer);
+                                .Aggregate(new List<GridPoint>(250000), this.GetPoints)
+                                .ToHashSet(GridPoint.XYComparer);
 
             var wire2 = input[1].Split(',', StringSplitOptions.RemoveEmptyEntries)
                                 .Aggregate(new List<GridPoint>(250000), this.GetPoints)
