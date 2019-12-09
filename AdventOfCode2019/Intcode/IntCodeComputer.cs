@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.CompilerServices;
 
 namespace AdventOfCode2019.Intcode
@@ -15,10 +14,10 @@ namespace AdventOfCode2019.Intcode
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
         public InstructionResult(long instructionPointer, long arithmeticResult, long outputIndex = -1, bool shouldHalt = false)
         {
-            InstructionPointer = instructionPointer;
-            ArithmeticResult = arithmeticResult;
-            OutputIndex = outputIndex;
-            ShouldHalt = shouldHalt;
+            this.InstructionPointer = instructionPointer;
+            this.ArithmeticResult = arithmeticResult;
+            this.OutputIndex = outputIndex;
+            this.ShouldHalt = shouldHalt;
         }
     }
 
@@ -65,7 +64,7 @@ namespace AdventOfCode2019.Intcode
             while (true)
             {
                 var length = OpCodeDecoder.MaxOpCodeArgumentLength + 1;
-                var nextMemory = memory[this.instructionPointer..(this.instructionPointer + length)];
+                var nextMemory = this.memory[this.instructionPointer..(this.instructionPointer + length)];
                 var opCode = OpCodeDecoder.Decode(nextMemory, this.instructionPointer);
                 var opResult = opCode.Type switch
                 {
@@ -98,8 +97,8 @@ namespace AdventOfCode2019.Intcode
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
         private InstructionResult OpSum(in OpCode opCode)
         {
-            var op1 = GetValue(opCode.Argument1);
-            var op2 = GetValue(opCode.Argument2);
+            var op1 = this.GetValue(opCode.Argument1);
+            var op2 = this.GetValue(opCode.Argument2);
             var resultIndex = opCode.Argument3.value;
 
             return new InstructionResult(opCode.InstructionPointer + 4, op1 + op2, resultIndex);
@@ -108,8 +107,8 @@ namespace AdventOfCode2019.Intcode
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
         private InstructionResult OpMultiply(in OpCode opCode)
         {
-            var op1 = GetValue(opCode.Argument1);
-            var op2 = GetValue(opCode.Argument2);
+            var op1 = this.GetValue(opCode.Argument1);
+            var op2 = this.GetValue(opCode.Argument2);
             var resultIndex = opCode.Argument3.value;
 
             return new InstructionResult(opCode.InstructionPointer + 4, op1 * op2, resultIndex);
@@ -131,7 +130,7 @@ namespace AdventOfCode2019.Intcode
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
         private InstructionResult OpOutput(in OpCode opCode)
         {
-            var value = GetValue(opCode.Argument1);
+            var value = this.GetValue(opCode.Argument1);
             this.outputs.Add(value);
             return new InstructionResult(opCode.InstructionPointer + 2, 0, -1, value != 0);
         }
@@ -139,12 +138,12 @@ namespace AdventOfCode2019.Intcode
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
         private InstructionResult OpJumpIfTrue(in OpCode opCode)
         {
-            var value = GetValue(opCode.Argument1);
+            var value = this.GetValue(opCode.Argument1);
 
             var instructionPointer = opCode.InstructionPointer + 3;
             if (value != 0)
             {
-                instructionPointer = GetValue(opCode.Argument2);
+                instructionPointer = this.GetValue(opCode.Argument2);
             }
 
             return new InstructionResult(instructionPointer, 0);
@@ -155,12 +154,12 @@ namespace AdventOfCode2019.Intcode
         private InstructionResult OpJumpIfFalse(in OpCode opCode)
         {
 
-            var value = GetValue(opCode.Argument1);
+            var value = this.GetValue(opCode.Argument1);
 
-            long instructionPointer = opCode.InstructionPointer + 3;
+            var instructionPointer = opCode.InstructionPointer + 3;
             if (value == 0)
             {
-                instructionPointer = GetValue(opCode.Argument2);
+                instructionPointer = this.GetValue(opCode.Argument2);
             }
 
             return new InstructionResult(instructionPointer, 0);
@@ -169,8 +168,8 @@ namespace AdventOfCode2019.Intcode
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
         private InstructionResult OpLessThan(in OpCode opCode)
         {
-            var op1 = GetValue(opCode.Argument1);
-            var op2 = GetValue(opCode.Argument2);
+            var op1 = this.GetValue(opCode.Argument1);
+            var op2 = this.GetValue(opCode.Argument2);
 
             var resultIndex = opCode.Argument3.value;
             var result = op1 < op2 ? 1 : 0;
@@ -180,8 +179,8 @@ namespace AdventOfCode2019.Intcode
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
         private InstructionResult OpEquals(in OpCode opCode)
         {
-            var op1 = GetValue(opCode.Argument1);
-            var op2 = GetValue(opCode.Argument2);
+            var op1 = this.GetValue(opCode.Argument1);
+            var op2 = this.GetValue(opCode.Argument2);
 
             var resultIndex = opCode.Argument3.value;
             var result = op1 == op2 ? 1 : 0;
