@@ -5,6 +5,23 @@ using System.Runtime.CompilerServices;
 
 namespace AdventOfCode2019.Intcode
 {
+    internal readonly ref struct InstructionResult
+    {
+        public readonly long InstructionPointer;
+        public readonly long ArithmeticResult;
+        public readonly long OutputIndex;
+        public readonly bool ShouldHalt;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+        public InstructionResult(long instructionPointer, long arithmeticResult, long outputIndex = -1, bool shouldHalt = false)
+        {
+            InstructionPointer = instructionPointer;
+            ArithmeticResult = arithmeticResult;
+            OutputIndex = outputIndex;
+            ShouldHalt = shouldHalt;
+        }
+    }
+
     internal class IntCodeComputer
     {
         private readonly long[] memory;
