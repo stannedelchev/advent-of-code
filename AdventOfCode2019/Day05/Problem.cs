@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using AdventOfCode.Shared;
+﻿using AdventOfCode.Shared;
 using AdventOfCode2019.Intcode;
 
 namespace AdventOfCode2019.Day05
@@ -10,22 +9,37 @@ namespace AdventOfCode2019.Day05
         {
             var computer = new IntCodeComputer(input[0].Length);
             var program = computer.CreateProgram(input[0]);
-            computer.Initialize(program);
-            computer.QueueInput(1);
-            computer.ExecuteProgram();
+            var result = 0L;
 
-            return computer.Output.Last().ToString();
+            computer.Initialize(program);
+            computer.Input.Enqueue(1);
+            computer.Output = l => { result = l; };
+
+            // Ignore .WaitingForOutput state
+            while (computer.State != IntCodeComputerState.Halted)
+            {
+                computer.ExecuteProgram(true);
+            }
+
+            return result.ToString();
         }
 
         public string Part2(string[] input)
         {
             var computer = new IntCodeComputer(input[0].Length);
             var program = computer.CreateProgram(input[0]);
-            computer.Initialize(program);
-            computer.QueueInput(5);
-            computer.ExecuteProgram();
+            var result = 0L;
 
-            return computer.Output.Last().ToString();
+            computer.Initialize(program);
+            computer.Input.Enqueue(5);
+            computer.Output = l => result = l;
+            // Ignore .WaitingForOutput state
+            while (computer.State != IntCodeComputerState.Halted)
+            {
+                computer.ExecuteProgram(true);
+            }
+
+            return result.ToString();
         }
     }
 }

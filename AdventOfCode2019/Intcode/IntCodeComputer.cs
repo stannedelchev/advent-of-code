@@ -1,43 +1,31 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace AdventOfCode2019.Intcode
 {
-    internal readonly ref struct InstructionResult
-    {
-        public readonly long InstructionPointer;
-        public readonly long ArithmeticResult;
-        public readonly long OutputIndex;
-        public readonly bool ShouldHalt;
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
-        public InstructionResult(long instructionPointer, long arithmeticResult, long outputIndex = -1, bool shouldHalt = false)
-        {
-            this.InstructionPointer = instructionPointer;
-            this.ArithmeticResult = arithmeticResult;
-            this.OutputIndex = outputIndex;
-            this.ShouldHalt = shouldHalt;
-        }
-    }
-
     internal class IntCodeComputer
     {
         private readonly long[] memory;
-        private readonly Queue<long> input;
-        private readonly List<long> outputs;
 
         private int instructionPointer;
 
         public IntCodeComputer(int memorySize)
         {
             this.memory = new long[memorySize];
-            this.input = new Queue<long>(128);
-            this.outputs = new List<long>(128);
             this.instructionPointer = 0;
+            this.Input = new Queue<long>();
+            this.State = IntCodeComputerState.InitialState;
         }
 
-        public IEnumerable<long> Output => this.outputs;
+        public Queue<long> Input { get; }
+
+        public Action<long> Output { get; set; }
 
         public long this[int index]
         {
@@ -46,20 +34,24 @@ namespace AdventOfCode2019.Intcode
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
-        public void Initialize(long[] program)
+        public void Initialize(in long[] program)
         {
             Array.Copy(program, this.memory, program.Length);
-        }
-
-        public void QueueInput(long input)
-        {
-            this.input.Enqueue(input);
+            this.State = IntCodeComputerState.Initialized;
+            this.instructionPointer = 0;
+            this.Input.Clear();
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
-        public void ExecuteProgram()
+        public void ExecuteProgram(bool keepState = false)
         {
-            this.instructionPointer = 0;
+            if (!keepState)
+            {
+                this.instructionPointer = 0;
+                this.Input.Clear();
+            }
+
+            this.State = IntCodeComputerState.Running;
 
             while (true)
             {
@@ -80,19 +72,32 @@ namespace AdventOfCode2019.Intcode
                     _ => default
                 };
 
+                this.instructionPointer = (int)opResult.InstructionPointer;
+
                 if (opResult.OutputIndex != -1)
                 {
                     this.memory[opResult.OutputIndex] = opResult.ArithmeticResult;
                 }
 
-                if (opResult.ShouldHalt)
+                if (opResult.NewState == IntCodeComputerState.Outputting)
+                {
+                    this.Output(opResult.ArithmeticResult);
+                }
+
+                if (opResult.HasNewState && opResult.NewState != IntCodeComputerState.Outputting)
+                {
+                    this.State = opResult.NewState;
+                }
+
+                if (this.State == IntCodeComputerState.Halted ||
+                    this.State == IntCodeComputerState.WaitingForInput)
                 {
                     return;
                 }
-
-                this.instructionPointer = (int)opResult.InstructionPointer;
             }
         }
+
+        public IntCodeComputerState State { get; private set; }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
         private InstructionResult OpSum(in OpCode opCode)
@@ -117,22 +122,25 @@ namespace AdventOfCode2019.Intcode
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
         private InstructionResult OpHalt(in OpCode opCode)
         {
-            return new InstructionResult(opCode.InstructionPointer, 0, -1, true);
+            return new InstructionResult(opCode.InstructionPointer, 0, -1, IntCodeComputerState.Halted);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
         private InstructionResult OpInput(in OpCode opCode)
         {
-            var input = this.input.Dequeue();
-            return new InstructionResult(opCode.InstructionPointer + 2, input, opCode.Argument1.value);
+            if (this.Input.TryDequeue(out var value))
+            {
+                return new InstructionResult(opCode.InstructionPointer + 2, value, opCode.Argument1.value);
+            }
+
+            return new InstructionResult(opCode.InstructionPointer, -1, -1, IntCodeComputerState.WaitingForInput);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
         private InstructionResult OpOutput(in OpCode opCode)
         {
             var value = this.GetValue(opCode.Argument1);
-            this.outputs.Add(value);
-            return new InstructionResult(opCode.InstructionPointer + 2, 0, -1, value != 0);
+            return new InstructionResult(opCode.InstructionPointer + 2, value, -1, IntCodeComputerState.Outputting);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
@@ -194,6 +202,11 @@ namespace AdventOfCode2019.Intcode
             return mode == ArgumentMode.Positional
                 ? this.memory[value]
                 : value;
+        }
+
+        private string DumpCore()
+        {
+            return string.Join(" ", this.memory);
         }
     }
 }

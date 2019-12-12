@@ -4,7 +4,7 @@ namespace AdventOfCode2019
 {
     internal class Program
     {
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             var problems = new IProblem[] {
                 new Day01.Problem(),
