@@ -44,21 +44,13 @@ namespace AdventOfCode2019.Intcode
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
-        public void ExecuteProgram(bool keepState = false)
+        public void ExecuteProgram()
         {
-            if (!keepState)
-            {
-                this.instructionPointer = 0;
-                this.Input.Clear();
-            }
-
             this.State = IntCodeComputerState.Running;
 
             while (true)
             {
-                var length = OpCodeDecoder.MaxOpCodeArgumentLength + 1;
-                var nextMemory = this.memory[this.instructionPointer..(this.instructionPointer + length)];
-                var opCode = OpCodeDecoder.Decode(nextMemory, this.instructionPointer);
+                var opCode = OpCodeDecoder.Decode(this.memory, this.instructionPointer);
                 var opResult = opCode.Type switch
                 {
                     1 => this.OpSum(opCode),

@@ -13,7 +13,7 @@ namespace AdventOfCode2019.Day05
 
             computer.Initialize(program);
             computer.Input.Enqueue(1);
-            computer.ExecuteProgram(true);
+            computer.ExecuteProgram();
 
             return computer.Outputs.Last().ToString();
         }
@@ -25,7 +25,7 @@ namespace AdventOfCode2019.Day05
 
             computer.Initialize(program);
             computer.Input.Enqueue(5);
-            computer.ExecuteProgram(true);
+            computer.ExecuteProgram();
 
             return computer.Outputs.Last().ToString();
         }

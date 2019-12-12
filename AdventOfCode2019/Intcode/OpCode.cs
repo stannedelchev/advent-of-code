@@ -1,4 +1,6 @@
-﻿namespace AdventOfCode2019.Intcode
+﻿using System.Runtime.CompilerServices;
+
+namespace AdventOfCode2019.Intcode
 {
     internal readonly ref struct OpCode
     {
@@ -10,6 +12,7 @@
         public readonly (ArgumentMode mode, long value) Argument4;
         public readonly (ArgumentMode mode, long value) Argument5;
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
         public OpCode(long type,
             long instructionPointer,
             (ArgumentMode mode, long value) argument1 = default,

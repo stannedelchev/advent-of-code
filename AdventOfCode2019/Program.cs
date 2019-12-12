@@ -1,4 +1,6 @@
-﻿using AdventOfCode.Shared;
+﻿using System.Linq;
+using AdventOfCode.Shared;
+using MoreLinq;
 
 namespace AdventOfCode2019
 {
@@ -16,6 +18,8 @@ namespace AdventOfCode2019
                 new Day07.Problem(),
                 new Day08.Problem()
             };
+
+            //problems = problems.Repeat().Take(200).ToArray();
 
             var runner = new ProblemRunner(problems);
             runner.Run();

@@ -32,7 +32,7 @@ namespace AdventOfCode2019.Day07
                     computer.Input.Enqueue(phaseDistribution[i]);
                     computer.Input.Enqueue(previousOutput);
                     computer.Output += (_, l) => previousOutput = l;
-                    computer.ExecuteProgram(true);
+                    computer.ExecuteProgram();
                 }
 
                 var thrusterSignal = previousOutput;
@@ -71,12 +71,12 @@ namespace AdventOfCode2019.Day07
                     {
                         var nextComputer = computers[(computerIndex + 1) % 5];
                         nextComputer.Input.Enqueue(l);
-                        nextComputer.ExecuteProgram(true);
+                        nextComputer.ExecuteProgram();
                     };
                 }
 
                 computers[0].Input.Enqueue(0);
-                computers[0].ExecuteProgram(true);
+                computers[0].ExecuteProgram();
 
                 var thrusterSignal = computers[^1].Outputs.Last();
                 if (thrusterSignal > maxThrusterSignal)
