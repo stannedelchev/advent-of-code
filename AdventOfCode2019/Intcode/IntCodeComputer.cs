@@ -1,17 +1,13 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace AdventOfCode2019.Intcode
 {
     internal class IntCodeComputer
     {
         private readonly long[] memory;
+        private readonly LinkedList<long> outputs;
 
         private int instructionPointer;
 
@@ -21,15 +17,20 @@ namespace AdventOfCode2019.Intcode
             this.instructionPointer = 0;
             this.Input = new Queue<long>();
             this.State = IntCodeComputerState.InitialState;
+            this.outputs = new LinkedList<long>();
         }
 
         public Queue<long> Input { get; }
 
-        public Action<long> Output { get; set; }
+        public event EventHandler<long> Output = (_, __) => { };
+
+        public IEnumerable<long> Outputs => this.outputs;
 
         public long this[int index]
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
             get => this.memory[index];
+            [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
             set => this.memory[index] = value;
         }
 
@@ -81,7 +82,8 @@ namespace AdventOfCode2019.Intcode
 
                 if (opResult.NewState == IntCodeComputerState.Outputting)
                 {
-                    this.Output(opResult.ArithmeticResult);
+                    this.outputs.AddLast(opResult.ArithmeticResult);
+                    this.Output.Invoke(this, opResult.ArithmeticResult);
                 }
 
                 if (opResult.HasNewState && opResult.NewState != IntCodeComputerState.Outputting)

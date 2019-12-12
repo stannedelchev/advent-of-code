@@ -10,7 +10,7 @@ namespace AdventOfCode2019.Day07
     {
         public string Part1(string[] input)
         {
-            
+
             var phases = new[] { 0, 1, 2, 3, 4 }.Permutations().ToArray();
             var program = IntCodeComputerExtensions.CreateProgram(null, input[0]);
 
@@ -31,7 +31,7 @@ namespace AdventOfCode2019.Day07
                     computer.Initialize(program);
                     computer.Input.Enqueue(phaseDistribution[i]);
                     computer.Input.Enqueue(previousOutput);
-                    computer.Output = l => previousOutput = l;
+                    computer.Output += (_, l) => previousOutput = l;
                     computer.ExecuteProgram(true);
                 }
 
@@ -61,33 +61,24 @@ namespace AdventOfCode2019.Day07
             var maxThrusterSignal = long.MinValue;
             foreach (var phaseDistribution in phases)
             {
-                var outputs = new Dictionary<IntCodeComputer, List<long>>()
-                {
-                    {computers[0], new List<long>()},
-                    {computers[1], new List<long>()},
-                    {computers[2], new List<long>()},
-                    {computers[3], new List<long>()},
-                    {computers[4], new List<long>()}
-                };
-
                 for (var i = 0; i < 5; i++)
                 {
                     var computerIndex = i;
                     var computer = computers[computerIndex];
                     computer.Initialize(program);
                     computer.Input.Enqueue(phaseDistribution[i]);
-                    computer.Output = (l) =>
+                    computer.Output += (_, l) =>
                     {
-                        outputs[computer].Add(l);
-                        computers[(computerIndex + 1) % 5].Input.Enqueue(l);
-                        computers[(computerIndex + 1) % 5].ExecuteProgram(true);
+                        var nextComputer = computers[(computerIndex + 1) % 5];
+                        nextComputer.Input.Enqueue(l);
+                        nextComputer.ExecuteProgram(true);
                     };
                 }
 
                 computers[0].Input.Enqueue(0);
                 computers[0].ExecuteProgram(true);
 
-                var thrusterSignal = outputs[computers[^1]].Last();
+                var thrusterSignal = computers[^1].Outputs.Last();
                 if (thrusterSignal > maxThrusterSignal)
                 {
                     maxThrusterSignal = thrusterSignal;
