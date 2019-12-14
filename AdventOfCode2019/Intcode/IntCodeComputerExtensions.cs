@@ -8,8 +8,7 @@ namespace AdventOfCode2019.Intcode
         public static long[] CreateProgram(this IntCodeComputer self, string input)
         {
             var program = input.Split(",", StringSplitOptions.RemoveEmptyEntries)
-                .Select(int.Parse)
-                .Select(i => (long)i)
+                .Select(long.Parse)
                 .ToArray();
             return program;
         }

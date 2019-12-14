@@ -16,7 +16,7 @@ namespace AdventOfCode2019.Day07
 
             var computers = Enumerable.Range(0, 5).Select(i =>
             {
-                var result = new IntCodeComputer(input[0].Length);
+                var result = new IntCodeComputer();
                 result.Initialize(program);
                 return result;
             }).ToArray();
@@ -52,7 +52,7 @@ namespace AdventOfCode2019.Day07
             var computers = Enumerable.Range(0, 5)
                                       .Select(i =>
                                       {
-                                          var result = new IntCodeComputer(input[0].Length);
+                                          var result = new IntCodeComputer();
                                           result.Initialize(program);
                                           return result;
                                       })

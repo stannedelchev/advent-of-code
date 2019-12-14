@@ -6,15 +6,14 @@ namespace AdventOfCode2019.Intcode
 {
     internal class IntCodeComputer
     {
-        private readonly long[] memory;
+        private readonly Memory<long> memory;
         private readonly LinkedList<long> outputs;
 
-        private int instructionPointer;
-
-        public IntCodeComputer(int memorySize)
+        public IntCodeComputer()
         {
-            this.memory = new long[memorySize];
-            this.instructionPointer = 0;
+            this.memory = new Memory<long>();
+            this.InstructionPointer = 0;
+            this.RelativeBase = 0;
             this.Input = new Queue<long>();
             this.State = IntCodeComputerState.InitialState;
             this.outputs = new LinkedList<long>();
@@ -24,9 +23,13 @@ namespace AdventOfCode2019.Intcode
 
         public event EventHandler<long> Output = (_, __) => { };
 
+        public long InstructionPointer {get; internal set; }
+
+        public long RelativeBase { get; internal set; }
+
         public IEnumerable<long> Outputs => this.outputs;
 
-        public long this[int index]
+        public long this[long index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
             get => this.memory[index];
@@ -37,9 +40,14 @@ namespace AdventOfCode2019.Intcode
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
         public void Initialize(in long[] program)
         {
-            Array.Copy(program, this.memory, program.Length);
+            this.memory.Clear();
+            for (var i = 0; i < program.Length; i++)
+            {
+                this.memory[i] = program[i];
+            }
+
             this.State = IntCodeComputerState.Initialized;
-            this.instructionPointer = 0;
+            this.InstructionPointer = 0;
             this.Input.Clear();
         }
 
@@ -50,7 +58,7 @@ namespace AdventOfCode2019.Intcode
 
             while (true)
             {
-                var opCode = OpCodeDecoder.Decode(this.memory, this.instructionPointer);
+                var opCode = OpCodeDecoder.Decode(this.memory, this.InstructionPointer);
                 var opResult = opCode.Type switch
                 {
                     1 => this.OpSum(opCode),
@@ -61,6 +69,7 @@ namespace AdventOfCode2019.Intcode
                     6 => this.OpJumpIfFalse(opCode),
                     7 => this.OpLessThan(opCode),
                     8 => this.OpEquals(opCode),
+                    9 => this.OpAdjustRelativeBase(opCode),
                     99 => this.OpHalt(opCode),
                     _ => default
                 };
@@ -96,11 +105,6 @@ namespace AdventOfCode2019.Intcode
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
         private InstructionResult OpSum(in OpCode opCode)
         {
-            var op1 = this.GetValue(opCode.Argument1);
-            var op2 = this.GetValue(opCode.Argument2);
-            var resultIndex = opCode.Argument3.value;
-
-            return new InstructionResult(opCode.InstructionPointer + 4, op1 + op2, resultIndex);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
@@ -114,6 +118,14 @@ namespace AdventOfCode2019.Intcode
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+        private InstructionResult OpAdjustRelativeBase(in OpCode opCode)
+        {
+            var value = GetValue(opCode.Argument1);
+            this.relativeBase += (int)value;
+            return new InstructionResult(opCode.InstructionPointer + 2,0);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
         private InstructionResult OpHalt(in OpCode opCode)
         {
             return new InstructionResult(opCode.InstructionPointer, 0, -1, IntCodeComputerState.Halted);
@@ -124,7 +136,8 @@ namespace AdventOfCode2019.Intcode
         {
             if (this.Input.TryDequeue(out var value))
             {
-                return new InstructionResult(opCode.InstructionPointer + 2, value, opCode.Argument1.value);
+                var outputIndex = GetValue(opCode.Argument1);
+                return new InstructionResult(opCode.InstructionPointer + 2, value, outputIndex);
             }
 
             return new InstructionResult(opCode.InstructionPointer, -1, -1, IntCodeComputerState.WaitingForInput);
@@ -187,15 +200,6 @@ namespace AdventOfCode2019.Intcode
             var resultIndex = opCode.Argument3.value;
             var result = op1 == op2 ? 1 : 0;
             return new InstructionResult(opCode.InstructionPointer + 4, result, resultIndex);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
-        private long GetValue(in (ArgumentMode mode, long value) argument)
-        {
-            var (mode, value) = argument;
-            return mode == ArgumentMode.Positional
-                ? this.memory[value]
-                : value;
         }
 
         private string DumpCore()

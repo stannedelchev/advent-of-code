@@ -9,7 +9,7 @@ namespace AdventOfCode2019.Day02
     {
         public string Part1(string[] input)
         {
-            var computer = new IntCodeComputer(input[0].Length);
+            var computer = new IntCodeComputer();
             var program = computer.CreateProgram(input[0]);
             computer.Initialize(program);
             SetInputs(12, 2, computer);
@@ -20,7 +20,7 @@ namespace AdventOfCode2019.Day02
 
         public string Part2(string[] input)
         {
-            var computer = new IntCodeComputer(input[0].Length);
+            var computer = new IntCodeComputer();
             var program = computer.CreateProgram(input[0]);
 
             for (var noun = 0; noun < 100; noun++)
