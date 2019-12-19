@@ -9,16 +9,18 @@ namespace AdventOfCode2019.Intcode
     {
         private readonly Memory<long> memory;
         private readonly LinkedList<long> outputs;
-        
         public IntCodeComputer()
         {
             this.memory = new Memory<long>();
             this.InstructionPointer = 0;
             this.RelativeBase = 0;
+
             this.Input = new Queue<long>();
-            this.State = IntCodeComputerState.InitialState;
+            
             this.outputs = new LinkedList<long>();
             this.Output += NoOp;
+
+            this.State = IntCodeComputerState.InitialState;
         }
 
         public Queue<long> Input { get; }
@@ -33,20 +35,14 @@ namespace AdventOfCode2019.Intcode
 
         public IntCodeComputerState State { get; private set; }
 
+        public IEnumerable<KeyValuePair<long, long>> Memory => this.memory;
+
         public long this[long index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
             get => this.memory[index];
             [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
             set => this.memory[index] = value;
-        }
-
-        public IEnumerable<KeyValuePair<long,long>> Memory => this.memory;
-
-        internal void AppendOutput(in long output)
-        {
-            this.outputs.AddLast(output);
-            this.Output(this, output);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
@@ -85,6 +81,13 @@ namespace AdventOfCode2019.Intcode
                     return;
                 }
             }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+        internal void AppendOutput(in long output)
+        {
+            this.outputs.AddLast(output);
+            this.Output(this, output);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
