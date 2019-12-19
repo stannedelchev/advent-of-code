@@ -1,32 +1,39 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using AdventOfCode2019.Intcode.OpCodes;
 
 namespace AdventOfCode2019.Intcode
 {
     internal class IntCodeComputer
     {
-        private readonly long[] memory;
+        private readonly Memory<long> memory;
         private readonly LinkedList<long> outputs;
-
-        private int instructionPointer;
-
-        public IntCodeComputer(int memorySize)
+        
+        public IntCodeComputer()
         {
-            this.memory = new long[memorySize];
-            this.instructionPointer = 0;
+            this.memory = new Memory<long>();
+            this.InstructionPointer = 0;
+            this.RelativeBase = 0;
             this.Input = new Queue<long>();
             this.State = IntCodeComputerState.InitialState;
             this.outputs = new LinkedList<long>();
+            this.Output += NoOp;
         }
 
         public Queue<long> Input { get; }
 
-        public event EventHandler<long> Output = (_, __) => { };
+        public event EventHandler<long> Output;
+
+        public long InstructionPointer { get; internal set; }
+
+        public long RelativeBase { get; internal set; }
 
         public IEnumerable<long> Outputs => this.outputs;
 
-        public long this[int index]
+        public IntCodeComputerState State { get; private set; }
+
+        public long this[long index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
             get => this.memory[index];
@@ -34,13 +41,27 @@ namespace AdventOfCode2019.Intcode
             set => this.memory[index] = value;
         }
 
+        public IEnumerable<KeyValuePair<long,long>> Memory => this.memory;
+
+        internal void AppendOutput(in long output)
+        {
+            this.outputs.AddLast(output);
+            this.Output(this, output);
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
         public void Initialize(in long[] program)
         {
-            Array.Copy(program, this.memory, program.Length);
+            this.memory.Clear();
+            for (var i = 0; i < program.Length; i++)
+            {
+                this.memory[i] = program[i];
+            }
+
             this.State = IntCodeComputerState.Initialized;
-            this.instructionPointer = 0;
+            this.InstructionPointer = 0;
             this.Input.Clear();
+            this.outputs.Clear();
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
@@ -50,37 +71,12 @@ namespace AdventOfCode2019.Intcode
 
             while (true)
             {
-                var opCode = OpCodeDecoder.Decode(this.memory, this.instructionPointer);
-                var opResult = opCode.Type switch
-                {
-                    1 => this.OpSum(opCode),
-                    2 => this.OpMultiply(opCode),
-                    3 => this.OpInput(opCode),
-                    4 => this.OpOutput(opCode),
-                    5 => this.OpJumpIfTrue(opCode),
-                    6 => this.OpJumpIfFalse(opCode),
-                    7 => this.OpLessThan(opCode),
-                    8 => this.OpEquals(opCode),
-                    99 => this.OpHalt(opCode),
-                    _ => default
-                };
+                var opCode = this.Decode();
+                var newState = opCode.Execute(this);
 
-                this.instructionPointer = (int)opResult.InstructionPointer;
-
-                if (opResult.OutputIndex != -1)
+                if (newState != IntCodeComputerState.Outputting)
                 {
-                    this.memory[opResult.OutputIndex] = opResult.ArithmeticResult;
-                }
-
-                if (opResult.NewState == IntCodeComputerState.Outputting)
-                {
-                    this.outputs.AddLast(opResult.ArithmeticResult);
-                    this.Output.Invoke(this, opResult.ArithmeticResult);
-                }
-
-                if (opResult.HasNewState && opResult.NewState != IntCodeComputerState.Outputting)
-                {
-                    this.State = opResult.NewState;
+                    this.State = newState;
                 }
 
                 if (this.State == IntCodeComputerState.Halted ||
@@ -91,116 +87,112 @@ namespace AdventOfCode2019.Intcode
             }
         }
 
-        public IntCodeComputerState State { get; private set; }
-
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
-        private InstructionResult OpSum(in OpCode opCode)
+        private IOpCode Decode()
         {
-            var op1 = this.GetValue(opCode.Argument1);
-            var op2 = this.GetValue(opCode.Argument2);
-            var resultIndex = opCode.Argument3.value;
+            var instruction = memory[InstructionPointer];
+            var type = instruction % 100;
+            instruction /= 100;
+            var arg1Mode = (ArgumentMode)(instruction % 10);
+            instruction /= 10;
+            var arg2Mode = (ArgumentMode)(instruction % 10);
+            instruction /= 10;
+            var arg3Mode = (ArgumentMode)(instruction % 10);
+            instruction /= 10;
 
-            return new InstructionResult(opCode.InstructionPointer + 4, op1 + op2, resultIndex);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
-        private InstructionResult OpMultiply(in OpCode opCode)
-        {
-            var op1 = this.GetValue(opCode.Argument1);
-            var op2 = this.GetValue(opCode.Argument2);
-            var resultIndex = opCode.Argument3.value;
-
-            return new InstructionResult(opCode.InstructionPointer + 4, op1 * op2, resultIndex);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
-        private InstructionResult OpHalt(in OpCode opCode)
-        {
-            return new InstructionResult(opCode.InstructionPointer, 0, -1, IntCodeComputerState.Halted);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
-        private InstructionResult OpInput(in OpCode opCode)
-        {
-            if (this.Input.TryDequeue(out var value))
+            IOpCode result = null;
+            switch (type)
             {
-                return new InstructionResult(opCode.InstructionPointer + 2, value, opCode.Argument1.value);
+                case 1:
+                    {
+                        var arg1Index = GetMemoryIndex(arg1Mode, 0);
+                        var arg2Index = GetMemoryIndex(arg2Mode, 1);
+                        var arg3Index = GetMemoryIndex(arg3Mode, 2);
+                        result = new OpCodeSum(arg1Index, arg2Index, arg3Index);
+                    }
+                    break;
+                case 2:
+                    {
+                        var arg1Index = GetMemoryIndex(arg1Mode, 0);
+                        var arg2Index = GetMemoryIndex(arg2Mode, 1);
+                        var arg3Index = GetMemoryIndex(arg3Mode, 2);
+                        result = new OpCodeMultiply(arg1Index, arg2Index, arg3Index);
+                    }
+                    break;
+                case 3:
+                    {
+                        var arg1Index = GetMemoryIndex(arg1Mode, 0);
+                        result = new OpCodeInput(arg1Index);
+                    }
+                    break;
+                case 4:
+                    {
+                        var arg1Index = GetMemoryIndex(arg1Mode, 0);
+                        result = new OpCodeOutput(arg1Index);
+                    }
+                    break;
+                case 5:
+                    {
+                        var arg1Index = GetMemoryIndex(arg1Mode, 0);
+                        var arg2Index = GetMemoryIndex(arg2Mode, 1);
+                        result = new OpCodeJumpIfTrue(arg1Index, arg2Index);
+                    }
+                    break;
+                case 6:
+                    {
+                        var arg1Index = GetMemoryIndex(arg1Mode, 0);
+                        var arg2Index = GetMemoryIndex(arg2Mode, 1);
+                        result = new OpCodeJumpIfFalse(arg1Index, arg2Index);
+                    }
+                    break;
+                case 7:
+                    {
+                        var arg1Index = GetMemoryIndex(arg1Mode, 0);
+                        var arg2Index = GetMemoryIndex(arg2Mode, 1);
+                        var arg3Index = GetMemoryIndex(arg3Mode, 2);
+                        result = new OpCodeLessThan(arg1Index, arg2Index, arg3Index);
+                    }
+                    break;
+                case 8:
+                    {
+                        var arg1Index = GetMemoryIndex(arg1Mode, 0);
+                        var arg2Index = GetMemoryIndex(arg2Mode, 1);
+                        var arg3Index = GetMemoryIndex(arg3Mode, 2);
+                        result = new OpCodeEquals(arg1Index, arg2Index, arg3Index);
+                    }
+                    break;
+                case 9:
+                {
+                    var arg1Index = GetMemoryIndex(arg1Mode, 0);
+                    result = new OpCodeAdjustRelativeBase(arg1Index);
+                }
+                    break;
+                case 99:
+                    return new OpCodeHalt();
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
 
-            return new InstructionResult(opCode.InstructionPointer, -1, -1, IntCodeComputerState.WaitingForInput);
+            return result;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
-        private InstructionResult OpOutput(in OpCode opCode)
+        private long GetMemoryIndex(in ArgumentMode mode, in long argumentPosition)
         {
-            var value = this.GetValue(opCode.Argument1);
-            return new InstructionResult(opCode.InstructionPointer + 2, value, -1, IntCodeComputerState.Outputting);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
-        private InstructionResult OpJumpIfTrue(in OpCode opCode)
-        {
-            var value = this.GetValue(opCode.Argument1);
-
-            var instructionPointer = opCode.InstructionPointer + 3;
-            if (value != 0)
+            return mode switch
             {
-                instructionPointer = this.GetValue(opCode.Argument2);
-            }
-
-            return new InstructionResult(instructionPointer, 0);
+                ArgumentMode.Positional => memory[InstructionPointer + argumentPosition + 1],
+                ArgumentMode.Immediate => (InstructionPointer + argumentPosition + 1),
+                ArgumentMode.Relative => (memory[InstructionPointer + argumentPosition + 1] + RelativeBase),
+                _ => throw new ArgumentOutOfRangeException()
+            };
         }
 
 
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
-        private InstructionResult OpJumpIfFalse(in OpCode opCode)
+        private static void NoOp(object _, long __)
         {
 
-            var value = this.GetValue(opCode.Argument1);
-
-            var instructionPointer = opCode.InstructionPointer + 3;
-            if (value == 0)
-            {
-                instructionPointer = this.GetValue(opCode.Argument2);
-            }
-
-            return new InstructionResult(instructionPointer, 0);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
-        private InstructionResult OpLessThan(in OpCode opCode)
-        {
-            var op1 = this.GetValue(opCode.Argument1);
-            var op2 = this.GetValue(opCode.Argument2);
-
-            var resultIndex = opCode.Argument3.value;
-            var result = op1 < op2 ? 1 : 0;
-            return new InstructionResult(opCode.InstructionPointer + 4, result, resultIndex);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
-        private InstructionResult OpEquals(in OpCode opCode)
-        {
-            var op1 = this.GetValue(opCode.Argument1);
-            var op2 = this.GetValue(opCode.Argument2);
-
-            var resultIndex = opCode.Argument3.value;
-            var result = op1 == op2 ? 1 : 0;
-            return new InstructionResult(opCode.InstructionPointer + 4, result, resultIndex);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
-        private long GetValue(in (ArgumentMode mode, long value) argument)
-        {
-            var (mode, value) = argument;
-            return mode == ArgumentMode.Positional
-                ? this.memory[value]
-                : value;
-        }
-
-        private string DumpCore()
-        {
-            return string.Join(" ", this.memory);
         }
     }
 }
