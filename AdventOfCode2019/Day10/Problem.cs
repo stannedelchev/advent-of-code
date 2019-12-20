@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace AdventOfCode2019.Day10
 {
@@ -22,6 +23,7 @@ namespace AdventOfCode2019.Day10
             return $"{result[199].Destination.OriginalPosition.X * 100 + result[199].Destination.OriginalPosition.Y}";
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
         private static List<Asteroid> ParseAsteroids(in IReadOnlyList<string> input, out Asteroid asteroidWithMostVisibleOthers)
         {
             var asteroids = new List<Asteroid>(1024);
@@ -30,45 +32,47 @@ namespace AdventOfCode2019.Day10
             {
                 for (var column = 0; column < input[row].Length; column++)
                 {
-                    var x = column;
                     var y = input.Count - 1 - row;
                     if (input[row][column] == '#')
                     {
-                        asteroids.Add(new Asteroid(new Point(x, y), new Point(x, row)));
+                        asteroids.Add(new Asteroid(new Point(column, y), new Point(column, row)));
                     }
                 }
             }
 
             asteroidWithMostVisibleOthers = asteroids[0];
-            foreach (var asteroid in asteroids)
+            var asteroidsCount = asteroids.Count;
+            for (var i = 0; i < asteroidsCount; i++)
             {
-                foreach (var asteroid1 in asteroids)
+                var origin = asteroids[i];
+                for (var j = 0; j < asteroidsCount; j++)
                 {
-                    if (asteroid.Equals(asteroid1))
+                    var destination = asteroids[j];
+                    if (origin.Equals(destination))
                     {
                         continue;
                     }
 
-                    var dx = asteroid1.Position.X - asteroid.Position.X;
-                    var dy = asteroid1.Position.Y - asteroid.Position.Y;
+                    var asteroidPosition = origin.Position;
+                    var asteroid1Position = destination.Position;
+                    var asteroidX = asteroidPosition.X;
+                    var asteroidY = asteroidPosition.Y;
+                    var asteroid1X = asteroid1Position.X;
+                    var asteroid1Y = asteroid1Position.Y;
+
+                    var dx = asteroid1X - asteroidX;
+                    var dy = asteroid1Y - asteroidY;
                     var angle = Math.Atan2(dy, dx);
 
-                    var asteroidRelationship = new AsteroidRelationship
-                    {
-                        RadianAngleFromOriginToDestination = angle,
-                        Origin = asteroid,
-                        Destination = asteroid1,
-                        Distance = Math.Sqrt(Math.Pow(asteroid.Position.X - asteroid1.Position.X, 2) +
-                                             Math.Pow(asteroid.Position.Y - asteroid1.Position.Y, 2))
-                    };
+                    var asteroidRelationship = new AsteroidRelationship(origin, destination, angle,
+                                                                        Math.Sqrt(Math.Pow(asteroidX - asteroid1X, 2) +
+                                                                                  Math.Pow(asteroidY - asteroid1Y, 2)));
 
-                    asteroid.VisibleAsteroidAngles.Add(asteroidRelationship);
-                    asteroid.AllAsteroidAngles.Add(asteroidRelationship);
+                    origin.VisibleAsteroidAngles.Add(asteroidRelationship);
 
-                    if (asteroid.VisibleAsteroidAngles.Count >
-                        asteroidWithMostVisibleOthers.VisibleAsteroidAngles.Count)
+                    if (origin.VisibleAsteroidAngles.Count > asteroidWithMostVisibleOthers.VisibleAsteroidAngles.Count)
                     {
-                        asteroidWithMostVisibleOthers = asteroid;
+                        asteroidWithMostVisibleOthers = origin;
                     }
                 }
             }

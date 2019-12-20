@@ -47,7 +47,7 @@ namespace AdventOfCode2019.Day07
 
         public string Part2(string[] input)
         {
-            var phases = new[] { 9, 8, 7, 6, 5 }.Permutations().ToArray();
+            var phases = new[] { 5, 6, 7, 8, 9 }.Permutations().ToArray();
             var program = IntCodeComputerExtensions.CreateProgram(null, input[0]);
             var computers = Enumerable.Range(0, 5)
                                       .Select(i =>

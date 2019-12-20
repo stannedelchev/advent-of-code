@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 namespace AdventOfCode2019.Day10
 {
     internal class AsteroidComparer : IComparer<AsteroidRelationship>
     {
+        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
         public int Compare(AsteroidRelationship a, AsteroidRelationship b)
         {
             var xAngle = a.RadianAngleFromOriginToDestination;

@@ -4,8 +4,8 @@ namespace AdventOfCode2019.Intcode.OpCodes
 {
     internal class OpCodeAdjustRelativeBase : IOpCode
     {
-
-        public OpCodeAdjustRelativeBase(long op1Index)
+        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+        public OpCodeAdjustRelativeBase(in long op1Index)
         {
             Op1Index = op1Index;
         }

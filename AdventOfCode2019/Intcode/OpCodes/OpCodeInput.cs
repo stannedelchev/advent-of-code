@@ -4,7 +4,8 @@ namespace AdventOfCode2019.Intcode.OpCodes
 {
     internal class OpCodeInput : IOpCode
     {
-        public OpCodeInput(long outputIndex)
+        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+        public OpCodeInput(in long outputIndex)
         {
             OutputIndex = outputIndex;
         }

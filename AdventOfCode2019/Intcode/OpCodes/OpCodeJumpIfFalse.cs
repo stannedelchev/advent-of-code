@@ -4,7 +4,8 @@ namespace AdventOfCode2019.Intcode.OpCodes
 {
     internal class OpCodeJumpIfFalse : IOpCode
     {
-        public OpCodeJumpIfFalse(long op1Index, long op2Index)
+        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+        public OpCodeJumpIfFalse(in long op1Index, in long op2Index)
         {
             Op1Index = op1Index;
             Op2Index = op2Index;

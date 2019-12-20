@@ -1,14 +1,17 @@
 ﻿using System.Collections.Generic;
 using System.Drawing;
+using System.Runtime.CompilerServices;
 
 namespace AdventOfCode2019.Day10
 {
     internal class Asteroid
     {
+        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
         public Asteroid(in Point position, in Point originalPosition)
         {
             this.Position = position;
             this.OriginalPosition = originalPosition;
+            this.VisibleAsteroidAngles = new HashSet<AsteroidRelationship>(1024, AsteroidRelationship.AngleComparer);
         }
 
         /// <summary>
@@ -21,8 +24,7 @@ namespace AdventOfCode2019.Day10
         /// </summary>
         public Point OriginalPosition { get; }
 
-        public HashSet<AsteroidRelationship> VisibleAsteroidAngles { get; } = new HashSet<AsteroidRelationship>(1024, AsteroidRelationship.AngleComparer);
-        public HashSet<AsteroidRelationship> AllAsteroidAngles { get; } = new HashSet<AsteroidRelationship>(1024);
+        public HashSet<AsteroidRelationship> VisibleAsteroidAngles { get; }
 
         public override string ToString()
         {

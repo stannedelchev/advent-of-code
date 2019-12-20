@@ -22,11 +22,12 @@ namespace AdventOfCode.Shared
             foreach (var problem in this.problems)
             {
                 var day = problem.GetType().Namespace.Split(".", StringSplitOptions.RemoveEmptyEntries).Last();
+                var input = File.ReadAllLines($"{day}\\input.txt");
 
-                (var part1Time, var part1Result) = RunPart(File.ReadAllLines($"{day}\\input.txt"), problem.Part1);
+                (var part1Time, var part1Result) = RunPart(input, problem.Part1);
                 Console.WriteLine($"{day}.1 - {part1Result} in {part1Time / 1000.0,3} sec | Total time: {totalTime.ElapsedMilliseconds / 1000.0,3} sec");
 
-                (var part2Time, var part2Result) = RunPart(File.ReadAllLines($"{day}\\input.txt"), problem.Part2);
+                (var part2Time, var part2Result) = RunPart(input, problem.Part2);
                 Console.WriteLine($"{day}.2 - {part2Result} in {part2Time / 1000.0,3} sec | Total time: {totalTime.ElapsedMilliseconds / 1000.0,3} sec");
             }
 

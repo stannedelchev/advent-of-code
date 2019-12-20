@@ -9,21 +9,11 @@ namespace AdventOfCode2019.Day03
 {
     internal class Problem : IProblem
     {
-        internal struct GridPoint
+        internal readonly struct GridPoint
         {
-            public int X { get; set; }
-            public int Y { get; set; }
-            public int Steps { get; set; }
-
-            public GridPoint(int x):this(x,0,0)
-            {
-                
-            }
-
-            public GridPoint(int x, int y): this(x,y,0)
-            {
-                    
-            }
+            public int X { get; }
+            public int Y { get; }
+            public int Steps { get; }
 
             public GridPoint(int x, int y, int steps)
             {
@@ -55,11 +45,11 @@ namespace AdventOfCode2019.Day03
         public string Part1(string[] input)
         {
             var wire1 = input[0].Split(',', StringSplitOptions.RemoveEmptyEntries)
-                                .Aggregate(new List<GridPoint>(250000), this.GetPoints)
+                                .Aggregate(new List<GridPoint>(250000), GetPoints)
                                 .ToArray();
 
             var wire2 = input[1].Split(',', StringSplitOptions.RemoveEmptyEntries)
-                                .Aggregate(new List<GridPoint>(250000), this.GetPoints)
+                                .Aggregate(new List<GridPoint>(250000), GetPoints)
                                 .ToArray();
 
 
@@ -71,11 +61,11 @@ namespace AdventOfCode2019.Day03
         public string Part2(string[] input)
         {
             var wire1 = input[0].Split(',', StringSplitOptions.RemoveEmptyEntries)
-                                .Aggregate(new List<GridPoint>(250000), this.GetPoints)
+                                .Aggregate(new List<GridPoint>(250000), GetPoints)
                                 .ToHashSet(GridPoint.XYComparer);
 
             var wire2 = input[1].Split(',', StringSplitOptions.RemoveEmptyEntries)
-                                .Aggregate(new List<GridPoint>(250000), this.GetPoints)
+                                .Aggregate(new List<GridPoint>(250000), GetPoints)
                                 .ToHashSet(GridPoint.XYComparer);
 
             wire1.IntersectWith(wire2);
@@ -93,7 +83,7 @@ namespace AdventOfCode2019.Day03
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
-        private List<GridPoint> GetPoints(List<GridPoint> acc, string cur)
+        private static List<GridPoint> GetPoints(List<GridPoint> acc, string cur)
         {
             var oldPoint = acc.Count == 0 ? new GridPoint() : acc[^1];
             var steps = oldPoint.Steps;

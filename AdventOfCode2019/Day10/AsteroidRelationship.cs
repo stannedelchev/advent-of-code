@@ -1,16 +1,27 @@
 ﻿using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 namespace AdventOfCode2019.Day10
 {
     internal class AsteroidRelationship
     {
-        public Asteroid Origin { get; set; }
-        public Asteroid Destination { get; set; }
-        public double RadianAngleFromOriginToDestination { get; set; }
-        public double Distance { get; set; }
+        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+        public AsteroidRelationship(in Asteroid origin, in Asteroid destination, in double radianAngleFromOriginToDestination, in double distance)
+        {
+            Origin = origin;
+            Destination = destination;
+            RadianAngleFromOriginToDestination = radianAngleFromOriginToDestination;
+            Distance = distance;
+        }
+
+        public Asteroid Origin { get; }
+        public Asteroid Destination { get; }
+        public double RadianAngleFromOriginToDestination { get; }
+        public double Distance { get; }
 
         private sealed class AngleEqualityComparer : IEqualityComparer<AsteroidRelationship>
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
             public bool Equals(AsteroidRelationship x, AsteroidRelationship y)
             {
                 if (ReferenceEquals(x, y)) return true;
@@ -20,6 +31,7 @@ namespace AdventOfCode2019.Day10
                 return x.RadianAngleFromOriginToDestination.Equals(y.RadianAngleFromOriginToDestination);
             }
 
+            [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
             public int GetHashCode(AsteroidRelationship obj)
             {
                 return obj.RadianAngleFromOriginToDestination.GetHashCode();

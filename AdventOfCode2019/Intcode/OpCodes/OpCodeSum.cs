@@ -4,7 +4,8 @@ namespace AdventOfCode2019.Intcode.OpCodes
 {
     internal class OpCodeSum : IOpCode
     {
-        public OpCodeSum(long op1Index, long op2Index, long outputIndex)
+        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+        public OpCodeSum(in long op1Index, in long op2Index, in long outputIndex)
         {
             Op1Index = op1Index;
             Op2Index = op2Index;
