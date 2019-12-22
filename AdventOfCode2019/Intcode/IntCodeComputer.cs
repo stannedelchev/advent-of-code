@@ -10,6 +10,7 @@ namespace AdventOfCode2019.Intcode
         private readonly Dictionary<long, long> memory = new Dictionary<long, long>();
 
         private readonly LinkedList<long> outputs;
+
         public IntCodeComputer()
         {
             this.InstructionPointer = 0;
@@ -115,7 +116,7 @@ namespace AdventOfCode2019.Intcode
                         var arg1Index = GetMemoryIndex(arg1Mode, 0);
                         var arg2Index = GetMemoryIndex(arg2Mode, 1);
                         var arg3Index = GetMemoryIndex(arg3Mode, 2);
-                        result = new OpCodeSum(arg1Index, arg2Index, arg3Index);
+                        result = OpCodeCache.OpCodeSum.From(arg1Index, arg2Index, arg3Index);
                     }
                     break;
                 case 2:
@@ -123,33 +124,33 @@ namespace AdventOfCode2019.Intcode
                         var arg1Index = GetMemoryIndex(arg1Mode, 0);
                         var arg2Index = GetMemoryIndex(arg2Mode, 1);
                         var arg3Index = GetMemoryIndex(arg3Mode, 2);
-                        result = new OpCodeMultiply(arg1Index, arg2Index, arg3Index);
+                        result = OpCodeCache.OpCodeMultiply.From(arg1Index, arg2Index, arg3Index);
                     }
                     break;
                 case 3:
                     {
                         var arg1Index = GetMemoryIndex(arg1Mode, 0);
-                        result = new OpCodeInput(arg1Index);
+                        result = OpCodeCache.OpCodeInput.From(arg1Index);
                     }
                     break;
                 case 4:
                     {
                         var arg1Index = GetMemoryIndex(arg1Mode, 0);
-                        result = new OpCodeOutput(arg1Index);
+                        result = OpCodeCache.OpCodeOutput.From(arg1Index);
                     }
                     break;
                 case 5:
                     {
                         var arg1Index = GetMemoryIndex(arg1Mode, 0);
                         var arg2Index = GetMemoryIndex(arg2Mode, 1);
-                        result = new OpCodeJumpIfTrue(arg1Index, arg2Index);
+                        result = OpCodeCache.OpCodeJumpIfTrue.From(arg1Index, arg2Index);
                     }
                     break;
                 case 6:
                     {
                         var arg1Index = GetMemoryIndex(arg1Mode, 0);
                         var arg2Index = GetMemoryIndex(arg2Mode, 1);
-                        result = new OpCodeJumpIfFalse(arg1Index, arg2Index);
+                        result = OpCodeCache.OpCodeJumpIfFalse.From(arg1Index, arg2Index);
                     }
                     break;
                 case 7:
@@ -157,7 +158,7 @@ namespace AdventOfCode2019.Intcode
                         var arg1Index = GetMemoryIndex(arg1Mode, 0);
                         var arg2Index = GetMemoryIndex(arg2Mode, 1);
                         var arg3Index = GetMemoryIndex(arg3Mode, 2);
-                        result = new OpCodeLessThan(arg1Index, arg2Index, arg3Index);
+                        result = OpCodeCache.OpCodeLessThan.From(arg1Index, arg2Index, arg3Index);
                     }
                     break;
                 case 8:
@@ -165,17 +166,17 @@ namespace AdventOfCode2019.Intcode
                         var arg1Index = GetMemoryIndex(arg1Mode, 0);
                         var arg2Index = GetMemoryIndex(arg2Mode, 1);
                         var arg3Index = GetMemoryIndex(arg3Mode, 2);
-                        result = new OpCodeEquals(arg1Index, arg2Index, arg3Index);
+                        result = OpCodeCache.OpCodeEquals.From(arg1Index, arg2Index, arg3Index);
                     }
                     break;
                 case 9:
                     {
                         var arg1Index = GetMemoryIndex(arg1Mode, 0);
-                        result = new OpCodeAdjustRelativeBase(arg1Index);
+                        result = OpCodeCache.OpCodeAdjustRelativeBase.From(arg1Index);
                     }
                     break;
                 case 99:
-                    return new OpCodeHalt();
+                    return OpCodeCache.OpCodeHalt;
                 default:
                     throw new ArgumentOutOfRangeException();
             }

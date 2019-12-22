@@ -5,14 +5,15 @@ namespace AdventOfCode2019.Intcode.OpCodes
     internal class OpCodeJumpIfFalse : IOpCode
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
-        public OpCodeJumpIfFalse(in long op1Index, in long op2Index)
+        public IOpCode From(in long op1Index, in long op2Index)
         {
             Op1Index = op1Index;
             Op2Index = op2Index;
+            return this;
         }
 
-        public long Op1Index { get; }
-        public long Op2Index { get; }
+        public long Op1Index;
+        public long Op2Index;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
         public IntCodeComputerState Execute(in IntCodeComputer computer)

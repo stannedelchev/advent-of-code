@@ -5,16 +5,17 @@ namespace AdventOfCode2019.Intcode.OpCodes
     internal class OpCodeMultiply : IOpCode
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
-        public OpCodeMultiply(in long op1Index, in long op2Index, in long outputIndex)
+        public IOpCode From(in long op1Index, in long op2Index, in long outputIndex)
         {
             Op1Index = op1Index;
             Op2Index = op2Index;
             OutputIndex = outputIndex;
+            return this;
         }
 
-        public long Op1Index { get; }
-        public long Op2Index { get; }
-        public long OutputIndex { get; }
+        public long Op1Index;
+        public long Op2Index;
+        public long OutputIndex;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
         public IntCodeComputerState Execute(in IntCodeComputer computer)

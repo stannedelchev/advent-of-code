@@ -5,16 +5,17 @@ namespace AdventOfCode2019.Intcode.OpCodes
     internal class OpCodeLessThan : IOpCode
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
-        public OpCodeLessThan(in long op1Index, in long op2Index, in long op3Index)
+        public IOpCode From(in long op1Index, in long op2Index, in long op3Index)
         {
             Op1Index = op1Index;
             Op2Index = op2Index;
             Op3Index = op3Index;
+            return this;
         }
 
-        public long Op1Index { get; }
-        public long Op2Index { get; }
-        public long Op3Index { get; }
+        public long Op1Index;
+        public long Op2Index;
+        public long Op3Index;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
         public IntCodeComputerState Execute(in IntCodeComputer computer)
