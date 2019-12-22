@@ -24,13 +24,15 @@ namespace AdventOfCode.Shared
                 var day = problem.GetType().Namespace.Split(".", StringSplitOptions.RemoveEmptyEntries).Last();
                 var input = File.ReadAllLines($"{day}\\input.txt");
 
+                GC.Collect();
                 totalTime.Start();
-                (var part1Time, var part1Result) = RunPart(input, problem.Part1);
+                var (part1Time, part1Result) = RunPart(input, problem.Part1);
                 totalTime.Stop();
                 Console.WriteLine($"{day}.1 - {part1Result} in {part1Time / 1000.0,3} sec | Total time: {totalTime.ElapsedMilliseconds / 1000.0,3} sec");
 
+                GC.Collect();
                 totalTime.Start();
-                (var part2Time, var part2Result) = RunPart(input, problem.Part2);
+                var (part2Time, part2Result) = RunPart(input, problem.Part2);
                 totalTime.Stop();
                 Console.WriteLine($"{day}.2 - {part2Result} in {part2Time / 1000.0,3} sec | Total time: {totalTime.ElapsedMilliseconds / 1000.0,3} sec");
             }

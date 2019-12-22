@@ -7,16 +7,16 @@ namespace AdventOfCode2019.Intcode
 {
     internal class IntCodeComputer
     {
-        private readonly Memory<long> memory;
+        private readonly Dictionary<long, long> memory = new Dictionary<long, long>();
+
         private readonly LinkedList<long> outputs;
         public IntCodeComputer()
         {
-            this.memory = new Memory<long>();
             this.InstructionPointer = 0;
             this.RelativeBase = 0;
 
             this.Input = new Queue<long>();
-            
+
             this.outputs = new LinkedList<long>();
             this.Output += NoOp;
 
@@ -40,7 +40,11 @@ namespace AdventOfCode2019.Intcode
         public long this[long index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
-            get => this.memory[index];
+            get
+            {
+                this.memory.TryGetValue(index, out var result);
+                return result;
+            }
             [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
             set => this.memory[index] = value;
         }
@@ -165,10 +169,10 @@ namespace AdventOfCode2019.Intcode
                     }
                     break;
                 case 9:
-                {
-                    var arg1Index = GetMemoryIndex(arg1Mode, 0);
-                    result = new OpCodeAdjustRelativeBase(arg1Index);
-                }
+                    {
+                        var arg1Index = GetMemoryIndex(arg1Mode, 0);
+                        result = new OpCodeAdjustRelativeBase(arg1Index);
+                    }
                     break;
                 case 99:
                     return new OpCodeHalt();
