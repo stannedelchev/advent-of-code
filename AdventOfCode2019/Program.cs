@@ -21,6 +21,7 @@ namespace AdventOfCode2019
                 new Day10.Problem(),
                 new Day11.Problem(),
                 new Day12.Problem(),
+                new Day13.Problem(),
             };
 
             //problems = problems.Repeat().Take(200).ToArray();
