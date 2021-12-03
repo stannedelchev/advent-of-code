@@ -19,7 +19,7 @@ namespace AdventOfCode.Shared
             GcBetweenParts = gcBetweenParts;
         }
 
-        public int PartRuns { get; set; }
+        public int PartRuns { get; }
         public bool GcBetweenRuns { get; }
         public bool GcBetweenParts { get; }
 
@@ -47,7 +47,6 @@ namespace AdventOfCode.Shared
                 }
                 var part1 = RunPart(input, problem.Part1, PartRuns, GcBetweenRuns);
                 Console.WriteLine(printPart(day, 1, part1, wallClock.Elapsed));
-
 
                 if (GcBetweenParts)
                 {
