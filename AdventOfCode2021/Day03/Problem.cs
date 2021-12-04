@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Buffers;
-using System.Collections;
 using System.Linq;
 using AdventOfCode.Shared;
 
@@ -62,21 +61,6 @@ namespace AdventOfCode2021.Day03
 
         public string Part2(string[] input)
         {
-            //input = new[] {
-            //    "00100",
-            //    "11110",
-            //    "10110",
-            //    "10111",
-            //    "10101",
-            //    "01111",
-            //    "00111",
-            //    "11100",
-            //    "10000",
-            //    "11001",
-            //    "00010",
-            //    "01010",
-            //    };
-
             var inputLength = input.Length;
             int wordLength = input[0].Length;
             var wordLengthLoopUpperBound = wordLength - 1;
@@ -124,6 +108,7 @@ namespace AdventOfCode2021.Day03
                     break;
                 }
             }
+
             var co2ScrubberRating = Convert.ToInt32(numbers[0], 2);
 
             return (oxygenGeneratorRating * co2ScrubberRating).ToString();
