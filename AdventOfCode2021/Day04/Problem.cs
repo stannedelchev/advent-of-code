@@ -2,68 +2,66 @@
 using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using AdventOfCode.Shared;
 
 namespace AdventOfCode2021.Day04
 {
     internal class Problem : IProblem
     {
-        class Board
+        private static class Board
         {
-            private readonly int[] _data;
-
-            public Board(int[] data)
-            {
-                _data = data;
-                RowMarks = new int[Size];
-                ColumnMarks = new int[Size];
-            }
-
-            public int[] RowMarks { get; }
-            public int[] ColumnMarks { get; }
-
+            public const int IsBingoIndex = 0;
+            public const int IsBingoValue = 1;
+            public const int RowMarksIndex = IsBingoIndex + 1;
+            public const int ColumnMarksIndex = RowMarksIndex + Size;
+            public const int DataIndex = ColumnMarksIndex + Size;
+            public const int DataLength = 1 + Size + Size + Size * Size;
             public const int Size = 5;
 
-            public bool IsBingo { get; private set; }
-
-            public bool TryMark(int draw)
+            [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+            public static bool TryMark(ref int[] board, int draw)
             {
-                if (IsBingo)
+                if (board[IsBingoIndex] == IsBingoValue)
                 {
                     return false;
                 }
 
-                var index = Array.IndexOf(_data, draw);
+                var index = Array.IndexOf(board, draw, DataIndex);
                 if (index == -1)
                 {
                     return false;
                 }
+                index -= DataIndex;
 
                 var row = index / Size;
                 var column = index - (row * Size);
 
-                _data[index] = -1;
+                board[DataIndex + index] = -1;
 
-                RowMarks[row]++;
-                ColumnMarks[column]++;
+                board[RowMarksIndex + row]++;
+                board[ColumnMarksIndex + column]++;
 
-                if (RowMarks[row] == Size || ColumnMarks[column] == Size)
+                if (board[RowMarksIndex + row] == Size ||
+                    board[ColumnMarksIndex + column] == Size)
                 {
-                    IsBingo= true;
+                    board[IsBingoIndex] = IsBingoValue;
                     return true;
                 }
 
                 return false;
             }
 
-            public int SumUnmarkedNumbers()
+            [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+            public static int SumUnmarkedNumbers(ref int[] board)
             {
                 var sum = 0;
-                for (int i = 0; i < _data.Length; i++)
+                var length = board.Length;
+                for (var i = DataIndex; i < length; i++)
                 {
-                    if (_data[i] != -1)
+                    if (board[i] != -1)
                     {
-                        sum += _data[i];
+                        sum += board[i];
                     }
                 }
                 return sum;
@@ -74,41 +72,55 @@ namespace AdventOfCode2021.Day04
         {
             var draws = input[0].Split(',', StringSplitOptions.RemoveEmptyEntries).Select(int.Parse).ToArray();
 
-            var boards = new List<Board>();
+            var boards = new List<int[]>(input.Length);
             {
-                var board = new int[Board.Size * Board.Size];
+                var board = new int[Board.DataLength];
                 var rowIndex = 0;
-                foreach (var line in input.Skip(2))
+                for (var lineIndex = 2; lineIndex < input.Length; lineIndex++)
                 {
+                    var line = input[lineIndex];
                     if (string.IsNullOrEmpty(line))
                     {
-                        boards.Add(new Board((int[])board.Clone()));
-                        Array.Clear(board);
+                        boards.Add(board);
+                        board = new int[Board.DataLength];
                         rowIndex = 0;
                         continue;
                     }
 
-                    var row = line.Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(int.Parse).ToArray();
+                    var row = new int[Board.Size];
+                    {
+                        for (var i = 0; i < 5; i++)
+                        {
+                            var digit = line[i * 3 + 1] - '0';
+                            if (line[i * 3] != ' ')
+                            {
+                                digit += 10 * (line[i * 3] - '0');
+                            }
+                            row[i] = digit;
+                        }
+                    }
 
                     for (var i = 0; i < Board.Size; i++)
                     {
-                        board[rowIndex * Board.Size + i] = row[i];
+                        board[Board.DataIndex + rowIndex * Board.Size + i] = row[i];
                     }
 
                     rowIndex++;
                 }
 
-                boards.Add(new Board((int[])board.Clone()));
+                boards.Add(board);
             }
 
-            foreach (var draw in draws)
+            for (var drawIndex = 0; drawIndex < draws.Length; drawIndex++)
             {
-                foreach (var board in boards)
+                var draw = draws[drawIndex];
+                for (var i = 0; i < boards.Count; i++)
                 {
-                    var bingo = board.TryMark(draw);
+                    var board = boards[i];
+                    var bingo = Board.TryMark(ref board, draw);
                     if (bingo)
                     {
-                        var sum = board.SumUnmarkedNumbers();
+                        var sum = Board.SumUnmarkedNumbers(ref board);
                         return (sum * draw).ToString();
                     }
                 }
@@ -121,39 +133,55 @@ namespace AdventOfCode2021.Day04
         {
             var draws = input[0].Split(',', StringSplitOptions.RemoveEmptyEntries).Select(int.Parse).ToArray();
 
-            var boards = new List<Board>();
+            var boards = new List<int[]>(input.Length);
             {
-                var board = new int[Board.Size * Board.Size];
+                var board = new int[Board.DataLength];
                 var rowIndex = 0;
-                foreach (var line in input.Skip(2))
+                for (var lineIndex = 2; lineIndex < input.Length; lineIndex++)
                 {
+                    var line = input[lineIndex];
                     if (string.IsNullOrEmpty(line))
                     {
-                        boards.Add(new Board((int[])board.Clone()));
-                        Array.Clear(board);
+                        boards.Add(board);
+                        board = new int[Board.DataLength];
                         rowIndex = 0;
                         continue;
                     }
 
-                    var row = line.Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(int.Parse).ToArray();
+                    var row = new int[Board.Size];
+                    {
+                        for (var i = 0; i < 5; i++)
+                        {
+                            var digit = line[i * 3 + 1] - '0';
+                            if (line[i * 3] != ' ')
+                            {
+                                digit += 10 * (line[i * 3] - '0');
+                            }
+                            row[i] = digit;
+                        }
+                    }
 
                     for (var i = 0; i < Board.Size; i++)
                     {
-                        board[rowIndex * Board.Size + i] = row[i];
+                        board[Board.DataIndex + rowIndex * Board.Size + i] = row[i];
                     }
 
                     rowIndex++;
                 }
-                boards.Add(new Board((int[])board.Clone()));
+
+                boards.Add(board);
             }
 
-            var lastWinningBoard = boards[0];
-            var lastWinningDraw = 0;
-            foreach (var draw in draws)
+            int[] lastWinningBoard = Array.Empty<int>();
+            int lastWinningDraw = 0;
+
+            for (var drawIndex = 0; drawIndex < draws.Length; drawIndex++)
             {
-                foreach (var board in boards)
+                var draw = draws[drawIndex];
+                for (var i = 0; i < boards.Count; i++)
                 {
-                    var bingo = board.TryMark(draw);
+                    var board = boards[i];
+                    var bingo = Board.TryMark(ref board, draw);
                     if (bingo)
                     {
                         lastWinningBoard = board;
@@ -162,8 +190,9 @@ namespace AdventOfCode2021.Day04
                 }
             }
 
-            var sum = lastWinningBoard.SumUnmarkedNumbers();
+            var sum = Board.SumUnmarkedNumbers(ref lastWinningBoard);
             return (sum * lastWinningDraw).ToString();
+
         }
     }
 }
