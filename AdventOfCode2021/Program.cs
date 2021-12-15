@@ -5,6 +5,7 @@ var problems = new IProblem[] {
     new AdventOfCode2021.Day02.Problem(),
     new AdventOfCode2021.Day03.Problem(),
     new AdventOfCode2021.Day04.Problem(),
+    new AdventOfCode2021.Day05.Problem(),
 };
 
 var runner = new ProblemRunner(problems, 100, true, true);
