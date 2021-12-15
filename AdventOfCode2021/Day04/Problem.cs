@@ -16,7 +16,7 @@ namespace AdventOfCode2021.Day04
             public const int RowMarksIndex = IsBingoIndex + 1;
             public const int ColumnMarksIndex = RowMarksIndex + Size;
             public const int DataIndex = ColumnMarksIndex + Size;
-            public const int DataLength = 1 + Size + Size + Size * Size;
+            public const int Length = 1 + Size + Size + Size * Size;
             public const int Size = 5;
 
             [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
@@ -74,41 +74,21 @@ namespace AdventOfCode2021.Day04
 
             var boards = new List<int[]>(input.Length);
             {
-                var board = new int[Board.DataLength];
-                var rowIndex = 0;
                 for (var lineIndex = 2; lineIndex < input.Length; lineIndex++)
                 {
-                    var line = input[lineIndex];
-                    if (string.IsNullOrEmpty(line))
+                    var board = new int[Board.Length];
+                    for (int rowIndex = 0; rowIndex < Board.Size; rowIndex++)
                     {
-                        boards.Add(board);
-                        board = new int[Board.DataLength];
-                        rowIndex = 0;
-                        continue;
+                        var line = input[lineIndex];
+                        board[Board.DataIndex + rowIndex * Board.Size + 0] = 10 * Math.Max(0, line[0 * 3] - '0') + (line[0 * 3 + 1] - '0');
+                        board[Board.DataIndex + rowIndex * Board.Size + 1] = 10 * Math.Max(0, line[1 * 3] - '0') + (line[1 * 3 + 1] - '0');
+                        board[Board.DataIndex + rowIndex * Board.Size + 2] = 10 * Math.Max(0, line[2 * 3] - '0') + (line[2 * 3 + 1] - '0');
+                        board[Board.DataIndex + rowIndex * Board.Size + 3] = 10 * Math.Max(0, line[3 * 3] - '0') + (line[3 * 3 + 1] - '0');
+                        board[Board.DataIndex + rowIndex * Board.Size + 4] = 10 * Math.Max(0, line[4 * 3] - '0') + (line[4 * 3 + 1] - '0');
+                        lineIndex++;
                     }
-
-                    var row = new int[Board.Size];
-                    {
-                        for (var i = 0; i < 5; i++)
-                        {
-                            var digit = line[i * 3 + 1] - '0';
-                            if (line[i * 3] != ' ')
-                            {
-                                digit += 10 * (line[i * 3] - '0');
-                            }
-                            row[i] = digit;
-                        }
-                    }
-
-                    for (var i = 0; i < Board.Size; i++)
-                    {
-                        board[Board.DataIndex + rowIndex * Board.Size + i] = row[i];
-                    }
-
-                    rowIndex++;
+                    boards.Add(board);
                 }
-
-                boards.Add(board);
             }
 
             for (var drawIndex = 0; drawIndex < draws.Length; drawIndex++)
@@ -135,20 +115,20 @@ namespace AdventOfCode2021.Day04
 
             var boards = new List<int[]>(input.Length);
             {
-                var board = new int[Board.DataLength];
+                var board = new int[Board.Length];
                 var rowIndex = 0;
+                var row = ArrayPool<int>.Shared.Rent(Board.Size);
                 for (var lineIndex = 2; lineIndex < input.Length; lineIndex++)
                 {
                     var line = input[lineIndex];
                     if (string.IsNullOrEmpty(line))
                     {
                         boards.Add(board);
-                        board = new int[Board.DataLength];
+                        board = new int[Board.Length];
                         rowIndex = 0;
                         continue;
                     }
 
-                    var row = new int[Board.Size];
                     {
                         for (var i = 0; i < 5; i++)
                         {
@@ -169,6 +149,7 @@ namespace AdventOfCode2021.Day04
                     rowIndex++;
                 }
 
+                ArrayPool<int>.Shared.Return(row);
                 boards.Add(board);
             }
 
