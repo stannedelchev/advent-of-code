@@ -1,7 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
+using System.Buffers;
+using System.Runtime.CompilerServices;
 using System.Text;
 using AdventOfCode.Shared;
 
@@ -9,58 +8,69 @@ namespace AdventOfCode2021.Day05
 {
     internal class Problem : IProblem
     {
-        [DebuggerDisplay("{X1},{Y1} -> {X2}, {Y2}")]
-        private record Line(int X1, int Y1, int X2, int Y2)
+        private const int BoardRowLength = 1000;
+
+        private static class Line
         {
-            public LineOrientation Orientation =>
-                X1 == X2 ? LineOrientation.Vertical
-                         : Y1 == Y2 ? LineOrientation.Horizontal
-                                    : LineOrientation.Diagonal;
-
-            public IEnumerable<(int, int)> Points()
+            [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+            public static LineOrientation GetOrientation(int x1, int y1, int x2, int y2)
             {
-                switch (Orientation)
+                return x1 == x2 ? LineOrientation.Vertical
+                                : y1 == y2 ? LineOrientation.Horizontal
+                                           : LineOrientation.Diagonal;
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+            public static void Mark(ref int[] board, ref int overlappedPoints, int row, int column)
+            {
+                var index = row * BoardRowLength + column;
+                var now = board[index];
+                board[index] = now + 1;
+                if (now == 1)
                 {
-                    case LineOrientation.Horizontal:
-                        {
-                            var x1 = Math.Min(X1, X2);
-                            var x2 = Math.Max(X1, X2);
-                            for (var x = x1; x <= x2; x++)
-                            {
-                                yield return (x, Y1);
-                            }
-                        }
-                        break;
-                    case LineOrientation.Vertical:
-                        {
-                            var y1 = Math.Min(Y1, Y2);
-                            var y2 = Math.Max(Y1, Y2);
-                            for (var y = y1; y <= y2; y++)
-                            {
-                                yield return (X1, y);
-                            }
-                        }
-                        break;
-                    case LineOrientation.Diagonal:
-                        {
-                            var xDelta = X2 > X1 ? 1 : -1;
-                            var yDelta = Y2 > Y1 ? 1 : -1;
-
-                            var x = X1;
-                            var y = Y1;
-                            do
-                            {
-                                yield return (x, y);
-                                x += xDelta;
-                                y += yDelta;
-                            } while (x != X2 && y != Y2);
-
-                            yield return (x, y);
-                        }
-                        break;
-                    default:
-                        throw new NotImplementedException();
+                    overlappedPoints++;
                 }
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+            public static void HorizontalMark(int X1, int Y1, int X2, int Y2, ref int[] board, ref int overlappedPoints)
+            {
+                var x1 = Math.Min(X1, X2);
+                var x2 = Math.Max(X1, X2);
+
+                for (var x = x1; x <= x2; x++)
+                {
+                    Line.Mark(ref board, ref overlappedPoints, Y1, x);
+                }
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+            public static void VerticalMark(int X1, int Y1, int X2, int Y2, ref int[] board, ref int overlappedPoints)
+            {
+                var y1 = Math.Min(Y1, Y2);
+                var y2 = Math.Max(Y1, Y2);
+                for (var y = y1; y <= y2; y++)
+                {
+                    Line.Mark(ref board, ref overlappedPoints, y, X1);
+                }
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+            public static void DiagonalMark(int X1, int Y1, int X2, int Y2, ref int[] board, ref int overlappedPoints)
+            {
+                var xDelta = X2 > X1 ? 1 : -1;
+                var yDelta = Y2 > Y1 ? 1 : -1;
+
+                var x = X1;
+                var y = Y1;
+                do
+                {
+                    Line.Mark(ref board, ref overlappedPoints, y, x);
+                    x += xDelta;
+                    y += yDelta;
+                } while (x != X2 && y != Y2);
+
+                Line.Mark(ref board, ref overlappedPoints, y, x);
             }
         }
 
@@ -73,36 +83,32 @@ namespace AdventOfCode2021.Day05
 
         public string Part1(string[] input)
         {
-            var lines = input.Select(l =>
+            var board = ArrayPool<int>.Shared.Rent(BoardRowLength * BoardRowLength);
+            var overlappedPoints = 0;
+            for (var i = 0; i < input.Length; i++)
             {
-                var split = l.Split(" -> ");
-                var leftParts = split[0].Split(',');
-                var rightParts = split[1].Split(',');
-                return new Line(int.Parse(leftParts[0]),
-                                int.Parse(leftParts[1]),
-                                int.Parse(rightParts[0]),
-                                int.Parse(rightParts[1]));
-            })
-                             .Where(l => l.Orientation is LineOrientation.Horizontal or LineOrientation.Vertical)
-                             .ToArray();
+                var line = input[i];
+                ReadOnlySpan<char> span = line;
+                var commaPos = line.IndexOf(',');
+                var lastCommaPos = line.LastIndexOf(',');
+                var x1 = int.Parse(span.Slice(0, commaPos));
+                var y1 = int.Parse(span.Slice(commaPos + 1, 3));
+                var x2 = int.Parse(span.Slice(lastCommaPos - 3, 3));
+                var y2 = int.Parse(span.Slice(lastCommaPos + 1));
 
-            var board = new int[1000, 1000];
-
-            var overlappingPoints = 0;
-
-            foreach (var line in lines)
-            {
-                foreach (var (x, y) in line.Points())
+                var orientation = Line.GetOrientation(x1, y1, x2, y2);
+                if (orientation == LineOrientation.Horizontal)
                 {
-                    board[y, x]++;
-                    if (board[y, x] == 2)
-                    {
-                        overlappingPoints++;
-                    }
+                    Line.HorizontalMark(x1, y1, x2, y2, ref board, ref overlappedPoints);
+                }
+                else if (orientation == LineOrientation.Vertical)
+                {
+                    Line.VerticalMark(x1, y1, x2, y2, ref board, ref overlappedPoints);
                 }
             }
 
-            return overlappingPoints.ToString();
+            ArrayPool<int>.Shared.Return(board, true);
+            return overlappedPoints.ToString();
         }
 
         private string PrintBoard(int[,] board)
@@ -124,35 +130,37 @@ namespace AdventOfCode2021.Day05
 
         public string Part2(string[] input)
         {
-            var lines = input.Select(l =>
-                             {
-                                 var split = l.Split(" -> ");
-                                 var leftParts = split[0].Split(',');
-                                 var rightParts = split[1].Split(',');
-                                 return new Line(int.Parse(leftParts[0]),
-                                                 int.Parse(leftParts[1]),
-                                                 int.Parse(rightParts[0]),
-                                                 int.Parse(rightParts[1]));
-                             })
-                             .ToArray();
-
-            var board = new int[1000, 1000];
-
-            var overlappingPoints = 0;
-
-            foreach (var line in lines)
+            var board = ArrayPool<int>.Shared.Rent(BoardRowLength * BoardRowLength);
+            var overlappedPoints = 0;
+            for (var i = 0; i < input.Length; i++)
             {
-                foreach (var (x, y) in line.Points())
+                var line = input[i];
+                ReadOnlySpan<char> span = line;
+                var commaPos = line.IndexOf(',');
+                var lastCommaPos = line.LastIndexOf(',');
+                var x1 = int.Parse(span.Slice(0, commaPos));
+                var y1 = int.Parse(span.Slice(commaPos + 1, 3));
+                var x2 = int.Parse(span.Slice(lastCommaPos - 3, 3));
+                var y2 = int.Parse(span.Slice(lastCommaPos + 1));
+
+                var orientation = Line.GetOrientation(x1, y1, x2, y2);
+
+                if (orientation == LineOrientation.Horizontal)
                 {
-                    board[y, x]++;
-                    if (board[y, x] == 2)
-                    {
-                        overlappingPoints++;
-                    }
+                    Line.HorizontalMark(x1, y1, x2, y2, ref board, ref overlappedPoints);
+                }
+                else if (orientation == LineOrientation.Vertical)
+                {
+                    Line.VerticalMark(x1, y1, x2, y2, ref board, ref overlappedPoints);
+                }
+                else
+                {
+                    Line.DiagonalMark(x1, y1, x2, y2, ref board, ref overlappedPoints);
                 }
             }
 
-            return overlappingPoints.ToString();
+            ArrayPool<int>.Shared.Return(board, true);
+            return overlappedPoints.ToString();
         }
     }
 }
