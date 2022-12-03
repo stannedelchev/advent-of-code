@@ -27,19 +27,13 @@ internal class Problem : IProblem
             var compartmentSeparatorIndex = rucksack.Length / 2;
             for (var leftItemIndex = 0; leftItemIndex < compartmentSeparatorIndex; leftItemIndex++)
             {
-                for (var rightItemIndex = compartmentSeparatorIndex; rightItemIndex < rucksack.Length; rightItemIndex++)
+                var leftItem = rucksack[leftItemIndex];
+                if (rucksack.IndexOf(leftItem, compartmentSeparatorIndex) != -1)
                 {
-                    var leftItem = rucksack[leftItemIndex];
-                    var rightItem = rucksack[rightItemIndex];
-
-                    if (leftItem == rightItem)
-                    {
-                        totalSum += priorities[leftItem];
-                        goto nextRucksack;
-                    }
+                    totalSum += priorities[leftItem];
+                    break;
                 }
             }
-            nextRucksack: ;
         }
 
         return totalSum.ToString();
