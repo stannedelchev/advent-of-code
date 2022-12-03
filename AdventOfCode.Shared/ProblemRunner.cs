@@ -27,18 +27,18 @@ namespace AdventOfCode.Shared
         {
             var wallClock = Stopwatch.StartNew();
 
-            static string printPart(string day, int partNumber, PartRun part, TimeSpan wallTimeSoFar)
+            static string PrintPart(string day, int partNumber, PartRun part, TimeSpan wallTimeSoFar)
             {
-                return $"{day}.{partNumber} - {part.Result} in {part.AverageDurationSeconds} sec " +
-                    $"| Minimum: {part.MinimumDurationSeconds} " +
-                    $"| Maximum: {part.MaximumDurationSeconds} " +
-                    $"| Total time: {part.TotalDurationSeconds} sec " +
+                return $"{day}.{partNumber} - {part.Result} in {part.AverageDurationSeconds:N8}s " +
+                    $"| Minimum: {part.MinimumDurationSeconds:N8} " +
+                    $"| Maximum: {part.MaximumDurationSeconds:N8} " +
+                    $"| Total time: {part.TotalDurationSeconds:N8}s " +
                     $"| Cumulative wall time: {wallTimeSoFar.TotalSeconds}";
             }
 
             foreach (var problem in this.problems)
             {
-                var day = problem.GetType().Namespace.Split(".", StringSplitOptions.RemoveEmptyEntries).Last();
+                var day = problem.GetType().Namespace!.Split(".", StringSplitOptions.RemoveEmptyEntries).Last();
                 var input = File.ReadAllLines($"{day}\\input.txt");
 
                 if (GcBetweenParts)
@@ -46,25 +46,25 @@ namespace AdventOfCode.Shared
                     Gc();
                 }
                 var part1 = RunPart(input, problem.Part1, PartRuns, GcBetweenRuns);
-                Console.WriteLine(printPart(day, 1, part1, wallClock.Elapsed));
+                Console.WriteLine(PrintPart(day, 1, part1, wallClock.Elapsed));
 
                 if (GcBetweenParts)
                 {
                     Gc();
                 }
                 var part2 = RunPart(input, problem.Part2, PartRuns, GcBetweenRuns);
-                Console.WriteLine(printPart(day, 2, part2, wallClock.Elapsed));
+                Console.WriteLine(PrintPart(day, 2, part2, wallClock.Elapsed));
             }
         }
 
         private static PartRun RunPart(string[] input, Func<string[], string> part, int runs = 1, bool gcBetweenRuns = false)
         {
-            string partResult = string.Empty;
+            var partResult = string.Empty;
             var totalDuration = TimeSpan.Zero;
             var minimumDuration = TimeSpan.MaxValue;
             var maximumDuration = TimeSpan.Zero;
 
-            for (int i = 0; i < runs; i++)
+            for (var i = 0; i < runs; i++)
             {
                 if (gcBetweenRuns)
                 {
