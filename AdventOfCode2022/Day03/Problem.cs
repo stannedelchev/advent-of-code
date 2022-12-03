@@ -7,19 +7,42 @@ internal class Problem : IProblem
 {
     public string Part1(string[] input)
     {
-        return input.Select(rucksack =>
-             {
-                 var leftCompartment = rucksack[..(rucksack.Length / 2)];
-                 var rightCompartment = rucksack[(rucksack.Length / 2)..];
+        var totalSum = 0;
+        var priorities = new[]
+        {
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0,
+            27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52,
+            0, 0, 0, 0, 0, 0,
+            1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26
+        };
 
-                 var leftItems = Enumerable.ToHashSet(leftCompartment);
-                 var rightItems = Enumerable.ToHashSet(rightCompartment);
+        foreach (var rucksack in input)
+        {
+            var compartmentSeparatorIndex = rucksack.Length / 2;
+            for (var leftItemIndex = 0; leftItemIndex < compartmentSeparatorIndex; leftItemIndex++)
+            {
+                for (var rightItemIndex = compartmentSeparatorIndex; rightItemIndex < rucksack.Length; rightItemIndex++)
+                {
+                    var leftItem = rucksack[leftItemIndex];
+                    var rightItem = rucksack[rightItemIndex];
 
-                 leftItems.IntersectWith(rightItems);
-                 return leftItems.Select(c => "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".IndexOf(c) + 1).Sum();
-             })
-             .Sum()
-             .ToString();
+                    if (leftItem == rightItem)
+                    {
+                        totalSum += priorities[leftItem];
+                        goto nextRucksack;
+                    }
+                }
+            }
+            nextRucksack: ;
+        }
+
+        return totalSum.ToString();
     }
 
     public string Part2(string[] input)
