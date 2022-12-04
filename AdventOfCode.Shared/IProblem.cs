@@ -1,6 +1,4 @@
-﻿using System.Threading.Tasks;
-
-namespace AdventOfCode.Shared
+﻿namespace AdventOfCode.Shared
 {
     public interface IProblem
     {
